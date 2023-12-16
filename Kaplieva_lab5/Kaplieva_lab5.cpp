@@ -6,6 +6,9 @@
 
 
 int task1(int* arr, int size);
+bool task2range(int* arr, int size, int& k);
+bool task2value(int* arr, int size, int& k);
+
 
 int task_menu();
 int source_menu();
@@ -20,8 +23,6 @@ void ending(int n); // вывод фразы введите элементов �
 
 template<typename T, typename Predicat>
 void validation(T& x, Predicat condition, const char* message); // cin с нужной проверкой
-//template<typename T, typename Predicat>
-//void validation(T& x, T& y, Predicat condition, const char* message);
 int check_file(std::ifstream& file); // проверка файла на существование/пустоту
 
 
@@ -31,9 +32,19 @@ int main()
 	setlocale(LC_ALL, "Russian");
 	srand(time(NULL));
 	int* arr = memory_allocation(10);
-	fill(arr, 10, -200, 200);
-	print_array(arr, 10);
-	std::cout << task1(arr, 10);
+	int size = 10;
+	fill(arr, size, -200, 200);
+	print_array(arr, size);
+	
+	int k = 0;
+	if (task2range(arr, size, k))
+	{
+		if (task2value(arr, size, k))
+			std::cout << "Ответ " << k << '\n';
+		else
+			std::cout << "Пустой диапазон\n";
+	}
+	else std::cout << "Отсутствует элемент входа\n";
 }
 
 
@@ -49,6 +60,43 @@ int task1(int* arr, int size)
 		}
 	}
 	return max; // 0 обработать как отсутствие двузначных
+}
+
+bool task2range(int* arr, int size, int& k)
+{
+	bool res = false;
+	k = 0;
+	int c{}, i{};
+	validation(c, [](int x) {return x >= 0 && x < 10; }, "Введите C");
+	int* ptr = arr;
+	while ((ptr != arr + size) && !res)
+	{
+		if (std::abs(*ptr) % 10 == c)
+		{
+			k = i;
+			res = true;
+		}
+		i++;
+		ptr++;
+	}
+	return res; // 0 отсутствие чисел, оканчивающихся на С
+				// 1 такое число есть
+}
+
+bool task2value(int* arr, int size, int& k)
+{
+	int res{};
+	int cnt{};
+	for (int* ptr = arr + k + 1; ptr != arr + size; ++ptr)
+	{
+		if (*ptr > 0)
+			cnt++;
+	}
+	k = cnt;
+	if (k != 0)
+		res = 1; // Есть ответ
+	else res = 0; // Пустой диапазон
+	return res;
 }
 
 int task_menu()
@@ -193,25 +241,3 @@ void validation(T& x, Predicat condition, const char* message)
 		std::cout << message << "\n>>> ";
 	}
 }
-
-//template<typename T, typename Predicat>
-//void validation(T& x, T& y, Predicat condition, const char* message)
-//{
-//	std::cout << message << '\n';
-//	std::cout << ">>> ";
-//	std::cin >> x;
-//	std::cout << ">>> ";
-//	std::cin >> y;
-//	while (!(condition(x, y)))
-//	{
-//		std::cout << "Ошибка ввода!\n";
-//		std::cout << message << '\n';
-//		std::cout << ">>> ";
-//		std::cin >> x;
-//		std::cout << ">>> ";
-//		std::cin >> y;
-//		std::cout << '\n';
-//		std::cin.clear();
-//		std::cin.ignore(std::cin.rdbuf()->in_avail());
-//	}
-//}
