@@ -8,18 +8,19 @@
 int task1(int* arr, int size);
 bool task2range(int* arr, int size, int& k);
 bool task2value(int* arr, int size, int& k);
-
+void shift_to_right(int* pos, int* i);
+void task3(int* arr, int size);
 
 int task_menu();
 int source_menu();
 void preamb(short choice, std::ifstream& file, int& size);
 void print_array(int* arr, int size);
+void ending(int n); // вывод фразы введите элементов с нужным окончанием
 
 int* memory_allocation(int size); // выделение памяти под динам. массив
 void free_memory(int*& arr); // возвращаем запрашиваемую память
 void fill(int* arr, int size, std::istream& stream); // заполняем массив из файла/клавы
 void fill(int* arr, int size, int a, int b); // заполняем массив рандомно
-void ending(int n); // вывод фразы введите элементов с нужным окончанием
 
 template<typename T, typename Predicat>
 void validation(T& x, Predicat condition, const char* message); // cin с нужной проверкой
@@ -36,15 +37,8 @@ int main()
 	fill(arr, size, -200, 200);
 	print_array(arr, size);
 	
-	int k = 0;
-	if (task2range(arr, size, k))
-	{
-		if (task2value(arr, size, k))
-			std::cout << "Ответ " << k << '\n';
-		else
-			std::cout << "Пустой диапазон\n";
-	}
-	else std::cout << "Отсутствует элемент входа\n";
+	task3(arr, size);
+	print_array(arr, size);
 }
 
 
@@ -97,6 +91,32 @@ bool task2value(int* arr, int size, int& k)
 		res = 1; // Есть ответ
 	else res = 0; // Пустой диапазон
 	return res;
+}
+
+void shift_to_right(int* pos, int* i)
+{
+	int tmp = *i;
+	for (int* j = i; j >= pos + 1; --j)
+		*j = *(j - 1);
+	*pos = tmp;
+}
+
+void task3(int* arr, int size)
+{
+	int* pos = arr;
+	int a{};
+	validation(a, [](int x) {return true; }, "Введите А");
+	for (int* i = arr; i != arr + size; ++i)
+	{
+		if (*i % a == 0)
+		{
+			if (i != pos)
+			{
+				shift_to_right(pos, i);
+			}
+			++pos;
+		}
+	}
 }
 
 int task_menu()
