@@ -19,7 +19,7 @@ void ending(int n); // вывод фразы введите элементов �
 
 int* memory_allocation(int size); // выделение памяти под динам. массив
 void free_memory(int*& arr); // возвращаем запрашиваемую память
-void fill(int* arr, int size, std::istream& stream); // заполняем массив из файла/клавы
+void fill(int* arr, int size, std::istream& stream = std::cin); // заполняем массив из файла/клавы
 void fill(int* arr, int size, int a, int b); // заполняем массив рандомно
 
 template<typename T, typename Predicat>
@@ -32,13 +32,72 @@ int main()
 {
 	setlocale(LC_ALL, "Russian");
 	srand(time(NULL));
-	int* arr = memory_allocation(10);
-	int size = 10;
-	fill(arr, size, -200, 200);
-	print_array(arr, size);
-	
-	task3(arr, size);
-	print_array(arr, size);
+	short task = 0, source = 0;
+	int size = 0;
+	do
+	{
+		task = task_menu();
+		if (task != 4)
+		{
+			source = source_menu();
+			std::ifstream file("data.txt");
+			int size = 0;
+			preamb(source, file, size);			// получаем size
+			int* arr = memory_allocation(size);
+			switch (source)
+			{
+			case 1:
+			{
+				fill(arr, size);
+				break;
+			}
+			case 2:
+			{
+				fill(arr, size, file);
+				break;
+			}
+			default:
+			{
+				int a{}, b{};
+				validation(a, [](int x) {return true; }, "Нижняя граница");
+				validation(b, [a](int x) {return x > a; }, "Нижняя граница");
+				fill(arr, size, a, b);
+				print_array(arr, size);
+			}
+			}
+
+			switch (task)
+			{
+			case 1:
+			{
+				if (task1(arr, size))
+					std::cout << "Ответ: " << task1(arr, size) << '\n';
+				else
+					std::cout << "Отсутствуют двузначные\n";
+				break;
+			}
+			case 2:
+			{
+				int k = 0;
+				if (task2range(arr, size, k))
+				{
+					if (task2value(arr, size, k))
+						std::cout << "Ответ " << k << '\n';
+					else
+						std::cout << "Пустой диапазон\n";
+				}
+				else std::cout << "Отсутствует элемент входа\n";
+				break;
+			}
+			default:
+			{
+				task3(arr, size);
+				print_array(arr, size);
+			}
+			}
+			free_memory(arr);
+		}
+	} while (task != 4);
 }
 
 
@@ -47,7 +106,7 @@ int task1(int* arr, int size)
 	int max{};
 	for (int* ptr = arr; ptr != arr + size; ++ptr)
 	{
-		if (*ptr >= -99 && *ptr <= 99)
+		if (*ptr >= -99 && *ptr <= 99 && !(*ptr > -10 && *ptr < 10))
 		{
 			if (*ptr > max)
 				max = *ptr;
@@ -121,11 +180,11 @@ void task3(int* arr, int size)
 
 int task_menu()
 {
-	std::cout << "-----------------------------------------------------\n";
+	std::cout << "\n-----------------------------------------------------\n";
 	std::cout << "1. Найти максимум среди двузначных чисел.\n";
 	std::cout << "2. Найти количество положительных элементов массива, расположенных\n   после первого элемента, оканчивающегося на заданную цифру.\n";
 	std::cout << "3. Преобразовать массив таким образом, чтобы сначала располагались\n   все элементы кратные заданному числу А, а потом – все остальные.\n";
-	std::cout << "Выход из программы.\n";
+	std::cout << "4. Выход из программы.\n";
 	std::cout << "-----------------------------------------------------\n";
 	
 	std::function<bool(int)> foo;
@@ -172,7 +231,7 @@ void preamb(short choice, std::ifstream& file, int& size)
 	default:
 	{
 		std::cout << "\nВведите количество случайных слагаемых: ";
-		validation(size, [](int x) {return x > 0; }, "\n-> ");
+		validation(size, [](int x) {return x > 0; }, "");
 		std::cin.ignore(std::cin.rdbuf()->in_avail());
 	}
 	}
