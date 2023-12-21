@@ -13,17 +13,17 @@ void task3(int* arr, int size);
 
 int task_menu();
 int source_menu();
-void preamb(short choice, std::ifstream& file, int& size);
+short preamb(short choice, std::ifstream& file, int& size);
 void print_array(int* arr, int size);
-void ending(int n); // вывод фразы введите элементов с нужным окончанием
+void ending(int n);
 
 int* memory_allocation(int size); // выделение памяти под динам. массив
 void free_memory(int*& arr); // возвращаем запрашиваемую память
-void fill(int* arr, int size, std::istream& stream = std::cin); // заполняем массив из файла/клавы
+void fill(int* arr, int size, std::istream& stream = std::cin); // заполняем массив из файла/клавы (по умолчанию - клава)
 void fill(int* arr, int size, int a, int b); // заполняем массив рандомно
 
 template<typename T, typename Predicat>
-void validation(T& x, Predicat condition, const char* message); // cin с нужной проверкой
+void validation(T& x, Predicat condition, const char* message);
 int check_file(std::ifstream& file); // проверка файла на существование/пустоту
 
 
@@ -42,60 +42,66 @@ int main()
 			source = source_menu();
 			std::ifstream file("data.txt");
 			int size = 0;
-			preamb(source, file, size);			// получаем size
-			int* arr = memory_allocation(size);
-			switch (source)
+			short fileTest = preamb(source, file, size); // получаем size и ключ проверки файла
+			if (fileTest == 1)
 			{
-			case 1:
-			{
-				fill(arr, size);
-				break;
-			}
-			case 2:
-			{
-				fill(arr, size, file);
-				break;
-			}
-			default:
-			{
-				int a{}, b{};
-				validation(a, [](int x) {return true; }, "Нижняя граница");
-				validation(b, [a](int x) {return x > a; }, "Нижняя граница");
-				fill(arr, size, a, b);
-				print_array(arr, size);
-			}
-			}
-
-			switch (task)
-			{
-			case 1:
-			{
-				if (task1(arr, size))
-					std::cout << "Ответ: " << task1(arr, size) << '\n';
-				else
-					std::cout << "Отсутствуют двузначные\n";
-				break;
-			}
-			case 2:
-			{
-				int k = 0;
-				if (task2range(arr, size, k))
+				int* arr = memory_allocation(size);
+				switch (source)
 				{
-					if (task2value(arr, size, k))
-						std::cout << "Ответ " << k << '\n';
-					else
-						std::cout << "Пустой диапазон\n";
+				case 1:
+				{
+					fill(arr, size);
+					break;
 				}
-				else std::cout << "Отсутствует элемент входа\n";
-				break;
+				case 2:
+				{
+					fill(arr, size, file);
+					break;
+				}
+				default:
+				{
+					int a{}, b{};
+					validation(a, [](int x) {return true; }, "Нижняя граница");
+					validation(b, [a](int x) {return x > a; }, "Нижняя граница");
+					fill(arr, size, a, b);
+					print_array(arr, size);
+				}
+				}
+
+				switch (task)
+				{
+				case 1:
+				{
+					if (task1(arr, size))
+						std::cout << "Ответ: " << task1(arr, size) << '\n';
+					else
+						std::cout << "Отсутствуют двузначные\n";
+					break;
+				}
+				case 2:
+				{
+					int k = 0;
+					if (task2range(arr, size, k))
+					{
+						if (task2value(arr, size, k))
+							std::cout << "Ответ " << k << '\n';
+						else
+							std::cout << "Пустой диапазон\n";
+					}
+					else std::cout << "Отсутствует элемент входа\n";
+					break;
+				}
+				default:
+				{
+					task3(arr, size);
+					print_array(arr, size);
+				}
+				}
+				free_memory(arr);
 			}
-			default:
-			{
-				task3(arr, size);
-				print_array(arr, size);
-			}
-			}
-			free_memory(arr);
+			else if (fileTest == 0)
+				std::cout << "Файл пустой!\n";
+			else std::cout << "Файл не найден!\n";
 		}
 	} while (task != 4);
 }
@@ -211,8 +217,9 @@ int source_menu()
 	return choice;
 }
 
-void preamb(short choice, std::ifstream& file, int& size)
+short preamb(short choice, std::ifstream& file, int& size)
 {
+	short res{ 1 };
 	switch (choice)
 	{
 	case 1:
@@ -225,7 +232,12 @@ void preamb(short choice, std::ifstream& file, int& size)
 	case 2:
 	{
 		if (check_file(file) == 1)
+		{
 			file >> size;
+		}
+		else if (check_file(file) == 0)
+			res = 0;
+		else res = -1;
 		break;
 	}
 	default:
@@ -235,6 +247,7 @@ void preamb(short choice, std::ifstream& file, int& size)
 		std::cin.ignore(std::cin.rdbuf()->in_avail());
 	}
 	}
+	return res;
 }
 
 void print_array(int* arr, int size)
@@ -300,11 +313,11 @@ int check_file(std::ifstream& file)
 	int res = 1;
 	if (!file)
 	{
-		res = -1;
+		res = -1; // Файл не найден!
 	}
 	else
-		if (file.peek() == EOF)
-			res = 0;
+		if (file.peek() == EOF) 
+			res = 0; // Файл пустой!
 	return res;
 }
 
