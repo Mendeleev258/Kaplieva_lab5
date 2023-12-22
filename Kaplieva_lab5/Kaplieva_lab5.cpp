@@ -5,11 +5,11 @@
 #include <fstream>
 
 
-int task1(int* arr, int size);
-bool task2range(int* arr, int size, int& k);
-bool task2value(int* arr, int size, int& k);
+bool task1(int* arr, int size, int& max);
+int* task2range(int* arr, int size, int c);
+int task2value(int* begin, int* end);
 void shift_to_right(int* pos, int* i);
-void task3(int* arr, int size);
+void task3(int* arr, int size, int a);
 
 int task_menu();
 int source_menu();
@@ -17,10 +17,10 @@ short preamb(short choice, std::ifstream& file, int& size);
 void print_array(int* arr, int size);
 void ending(int n);
 
-int* memory_allocation(int size); // выделение памяти под динам. массив
-void free_memory(int*& arr); // возвращаем запрашиваемую память
-void fill(int* arr, int size, std::istream& stream = std::cin); // заполняем массив из файла/клавы (по умолчанию - клава)
-void fill(int* arr, int size, int a, int b); // заполняем массив рандомно
+int* memory_allocation(int size);
+void free_memory(int*& arr);
+void fill(int* arr, int size, std::istream& stream = std::cin);
+void fill(int* arr, int size, int a, int b);
 
 template<typename T, typename Predicat>
 void validation(T& x, Predicat condition, const char* message);
@@ -72,28 +72,35 @@ int main()
 				{
 				case 1:
 				{
-					if (task1(arr, size))
-						std::cout << "Ответ: " << task1(arr, size) << '\n';
+					int max{};
+					if (task1(arr, size, max))
+						std::cout << max << '\n';
 					else
 						std::cout << "Отсутствуют двузначные\n";
 					break;
 				}
 				case 2:
 				{
-					int k = 0;
-					if (task2range(arr, size, k))
+					int c{};
+					validation(c, [](int x) {return x >= 0 && x < 10; }, "Введите C");
+					int* cptr = task2range(arr, size, c);
+					if (cptr)
 					{
-						if (task2value(arr, size, k))
-							std::cout << "Ответ " << k << '\n';
-						else
-							std::cout << "Пустой диапазон\n";
+						int* begin = cptr;
+						int* end = arr + size;
+						int count = task2value(begin, end);
+						if (count)
+							std::cout << count << '\n';
+						else std::cout << "Диапазон пустой\n";
 					}
 					else std::cout << "Отсутствует элемент входа\n";
 					break;
 				}
 				default:
 				{
-					task3(arr, size);
+					int a{};
+					validation(a, [](int x) {return true; }, "Введите А");
+					task3(arr, size, a);
 					print_array(arr, size);
 				}
 				}
@@ -107,9 +114,9 @@ int main()
 }
 
 
-int task1(int* arr, int size)
+bool task1(int* arr, int size, int& max) // bool
 {
-	int max{};
+	max = -100;
 	for (int* ptr = arr; ptr != arr + size; ++ptr)
 	{
 		if (*ptr >= -99 && *ptr <= 99 && !(*ptr > -10 && *ptr < 10))
@@ -118,44 +125,31 @@ int task1(int* arr, int size)
 				max = *ptr;
 		}
 	}
-	return max; // 0 обработать как отсутствие двузначных
+	return max != -100;
 }
 
-bool task2range(int* arr, int size, int& k)
+int* task2range(int* arr, int size, int c)
 {
-	bool res = false;
-	k = 0;
-	int c{}, i{};
-	validation(c, [](int x) {return x >= 0 && x < 10; }, "Введите C");
-	int* ptr = arr;
-	while ((ptr != arr + size) && !res)
+	int* ptr = arr, * resptr = nullptr;
+	while (ptr != arr + size && !resptr)
 	{
-		if (std::abs(*ptr) % 10 == c)
-		{
-			k = i;
-			res = true;
-		}
-		i++;
-		ptr++;
+		if (abs(*ptr) % 10 == c)
+			resptr = ptr;
+		else
+			ptr++;
 	}
-	return res; // 0 отсутствие чисел, оканчивающихся на С
-				// 1 такое число есть
+	return resptr; // nullptr отсутствие чисел, оканчивающихся на С
 }
 
-bool task2value(int* arr, int size, int& k)
+int task2value(int* begin, int* end) // int
 {
-	int res{};
 	int cnt{};
-	for (int* ptr = arr + k + 1; ptr != arr + size; ++ptr)
+	for (int* ptr = begin + 1; ptr != end; ++ptr)
 	{
 		if (*ptr > 0)
 			cnt++;
 	}
-	k = cnt;
-	if (k != 0)
-		res = 1; // Есть ответ
-	else res = 0; // Пустой диапазон
-	return res;
+	return cnt; // 0 пустой диапазон
 }
 
 void shift_to_right(int* pos, int* i)
@@ -166,11 +160,9 @@ void shift_to_right(int* pos, int* i)
 	*pos = tmp;
 }
 
-void task3(int* arr, int size)
+void task3(int* arr, int size, int a)
 {
 	int* pos = arr;
-	int a{};
-	validation(a, [](int x) {return true; }, "Введите А");
 	for (int* i = arr; i != arr + size; ++i)
 	{
 		if (*i % a == 0)
