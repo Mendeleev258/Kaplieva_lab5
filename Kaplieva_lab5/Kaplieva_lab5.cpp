@@ -88,7 +88,7 @@ int main()
 					{
 						int* begin = cptr;
 						int* end = arr + size;
-						int count = task2value(begin, end);
+						int count = task2value(begin + 1, end);
 						if (count)
 							std::cout << count << '\n';
 						else std::cout << "Диапазон пустой\n";
@@ -144,7 +144,7 @@ int* task2range(int* arr, int size, int c)
 int task2value(int* begin, int* end) // int
 {
 	int cnt{};
-	for (int* ptr = begin + 1; ptr != end; ++ptr)
+	for (int* ptr = begin; ptr != end; ++ptr)
 	{
 		if (*ptr > 0)
 			cnt++;
